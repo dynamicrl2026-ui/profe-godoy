@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mi portfolio</title>
+  <style>
+    :root {
+      --bg: #faf8f5;
+      --card: #fff;
+      --ink: #1d1b19;
+      --mute: #6f6a63;
+      --line: #e6e1da;
+      --acc: #c4501b;
+      --acc-2: #7a2e0b;
+      --shadow: rgba(20, 18, 16, 0.08);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #171513;
+        --card: #211e1b;
+        --ink: #f1ede7;
+        --mute: #a09a91;
+        --line: #37322d;
+        --acc: #f0834a;
+        --acc-2: #d9642a;
+        --shadow: rgba(0, 0, 0, 0.22);
+      }
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Georgia, 'Times New Roman', serif;
+    }
+
+    main {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 40px 20px 60px;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 6vw, 3.2rem);
+      margin: 0 0 6px;
+      letter-spacing: -0.02em;
+    }
+
+    .sub {
+      color: var(--mute);
+      font-family: system-ui, sans-serif;
+      margin: 0 0 28px;
+    }
+
+    .bar {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+      font-family: system-ui, sans-serif;
+    }
+
+    button {
+      font: 600 0.95rem system-ui, sans-serif;
+      background: var(--acc);
+      color: #fff;
+      border: 0;
+      border-radius: 10px;
+      padding: 11px 18px;
+      cursor: pointer;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+
+    button.ghost {
+      background: transparent;
+      color: var(--mute);
+      border: 1px solid var(--line);
+      padding: 6px 10px;
+      font-size: 0.8rem;
+    }
+
+    #drop {
+      flex: 1;
+      min-width: 220px;
+      border: 2px dashed var(--line);
+      border-radius: 12px;
+      padding: 11px 16px;
+      color: var(--mute);
+      font-size: 0.9rem;
+      text-align: center;
+      background: rgba(255,255,255,0.2);
+    }
+
+    #drop.over {
+      border-color: var(--acc);
+      color: var(--acc);
+    }
+
+    #msg {
+      width: 100%;
+      font-size: 0.85rem;
+      color: var(--mute);
+      min-height: 1.2em;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 6px 18px var(--shadow);
+    }
+
+    .thumb {
+      height: 130px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--acc), var(--acc-2));
+      color: #fff;
+      font: 700 1.5rem system-ui, sans-serif;
+      cursor: pointer;
+      overflow: hidden;
+    }
+
+    .thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .info {
+      padding: 14px;
+      font-family: system-ui, sans-serif;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+    }
+
+    .t {
+      font-weight: 600;
+      word-break: break-word;
+    }
+
+    .m {
+      color: var(--mute);
+      font-size: 0.8rem;
+    }
+
+    .acts {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+
+    .empty {
+      color: var(--mute);
+      font-family: system-ui, sans-serif;
+      padding: 50px 0;
+      text-align: center;
+    }
+
+    #modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      display: none;
+      flex-direction: column;
+      padding: 12px;
+      z-index: 9;
+    }
+
+    #modal.on {
+      display: flex;
+    }
+
+    #modal .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #fff;
+      font-family: system-ui, sans-serif;
+      margin-bottom: 8px;
+    }
+
+    #stage {
+      flex: 1;
+      background: #000;
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #stage iframe,
+    #stage video {
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    #stage img {
+      max-width: 100%;
+      max-height: 100%;
+      margin: auto;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Mi portfolio</h1>
+    <p class="sub">Presentaciones y trabajos</p>
+
+    <div class="bar">
+      <button id="pick">+ Agregar presentaciones</button>
+      <div id="drop">o arrastrá los archivos acá (PDF, PowerPoint, imágenes, video)</div>
+      <input type="file" id="file" multiple hidden>
+      <div id="msg"></div>
+    </div>
+
+    <div class="grid" id="grid"></div>
+    <div class="empty" id="empty">Todavía no hay presentaciones. Agregá la primera con el botón de arriba.</div>
+  </main>
+
+  <div id="modal">
+    <div class="top">
+      <span id="mt"></span>
+      <button class="ghost" id="close" style="color:#fff;border-color:#888">Cerrar ✕</button>
+    </div>
+    <div id="stage"></div>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const say = (t) => { $('msg').textContent = t || ''; };
+
+    const fmt = (b) => b > 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
+    const ext = (n) => (n.split('.').pop() || '').toLowerCase();
+
+    const kind = (it) => {
+      const e = ext(it.name);
+      if (it.type === 'application/pdf' || e === 'pdf') return 'pdf';
+      if ((it.type || '').startsWith('image/')) return 'img';
+      if ((it.type || '').startsWith('video/')) return 'vid';
+      return 'file';
+    };
+
+    let dbp;
+    function idb() {
+      if (!dbp) {
+        dbp = new Promise((res, rej) => {
+          const r = indexedDB.open('portfolio', 1);
+          r.onupgradeneeded = () => r.result.createObjectStore('items', { keyPath: 'id' });
+          r.onsuccess = () => res(r.result);
+          r.onerror = () => rej(r.error);
+        });
+      }
+      return dbp;
+    }
+
+    async function tx(mode, fn) {
+      const d = await idb();
+      return new Promise((res, rej) => {
+        const t = d.transaction('items', mode);
+        const s = t.objectStore('items');
+        const q = fn(s);
+        t.oncomplete = () => res(q && q.result);
+        t.onerror = () => rej(t.error);
+      });
+    }
+
+    const all = () => tx('readonly', s => s.getAll());
+    const put = (o) => tx('readwrite', s => s.put(o));
+    const del = (id) => tx('readwrite', s => s.delete(id));
+
+    let urls = [];
+
+    async function render() {
+      const items = ((await all()) || []).sort((a, b) => b.createdAt - a.createdAt);
+      urls.forEach((u) => URL.revokeObjectURL(u));
+      urls = [];
+
+      const g = $('grid');
+      g.textContent = '';
+      $('empty').style.display = items.length ? 'none' : 'block';
+
+      items.forEach((it) => {
+        const k = kind(it);
+        const c = document.createElement('div');
+        c.className = 'card';
+
+        const th = document.createElement('div');
+        th.className = 'thumb';
+
+        if (k === 'img') {
+          const u = URL.createObjectURL(it.blob);
+          urls.push(u);
+          const im = document.createElement('img');
+          im.src = u;
+          th.appendChild(im);
+        } else if (k === 'pdf') {
+          th.textContent = 'PDF';
+        } else if (k === 'vid') {
+          th.textContent = 'VIDEO';
+        } else {
+          th.textContent = (ext(it.name).toUpperCase().slice(0, 5) || 'ARCHIVO');
+        }
+
+        th.onclick = () => view(it);
+
+        const inf = document.createElement('div');
+        inf.className = 'info';
+
+        const t = document.createElement('div');
+        t.className = 't';
+        t.textContent = it.title;
+
+        const m = document.createElement('div');
+        m.className = 'm';
+        m.textContent = new Date(it.createdAt).toLocaleDateString('es-AR') + ' · ' + fmt(it.blob.size);
+
+        const a = document.createElement('div');
+        a.className = 'acts';
+
+        const v = document.createElement('button');
+        v.textContent = k === 'file' ? 'Descargar' : 'Ver';
+        v.onclick = () => (k === 'file' ? save(it) : view(it));
+
+        const r = document.createElement('button');
+        r.className = 'ghost';
+        r.textContent = 'Renombrar';
+        r.onclick = async () => {
+          const n = prompt('Nuevo título', it.title);
+          if (n && n.trim()) {
+            it.title = n.trim();
+            await put(it);
+            render();
+          }
+        };
+
+        const d = document.createElement('button');
+        d.className = 'ghost';
+        d.textContent = 'Borrar';
+        d.onclick = async () => {
+          if (confirm('¿Borrar "' + it.title + '"?')) {
+            await del(it.id);
+            render();
+          }
+        };
+
+        a.append(v, r, d);
+        inf.append(t, m, a);
+        c.append(th, inf);
+        g.appendChild(c);
+      });
+    }
+
+    function save(it) {
+      const u = URL.createObjectURL(it.blob);
+      const a = document.createElement('a');
+      a.href = u;
+      a.download = it.name;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(u), 2000);
+    }
+
+    let cur = null;
+
+    function view(it) {
+      const k = kind(it);
+      if (k === 'file') {
+        save(it);
+        return;
+      }
+
+      const s = $('stage');
+      s.textContent = '';
+
+      cur = URL.createObjectURL(new Blob([it.blob], { type: k === 'pdf' ? 'application/pdf' : it.blob.type }));
+
+      let el;
+      if (k === 'img') {
+        el = document.createElement('img');
+      } else if (k === 'vid') {
+        el = document.createElement('video');
+        el.controls = true;
+      } else {
+        el = document.createElement('iframe');
+      }
+
+      el.src = cur;
+      s.appendChild(el);
+      $('mt').textContent = it.title;
+      $('modal').classList.add('on');
+    }
+
+    $('close').onclick = () => {
+      $('modal').classList.remove('on');
+      $('stage').textContent = '';
+      if (cur) URL.revokeObjectURL(cur);
+      cur = null;
+    };
+
+    async function add(list) {
+      const files = [...list];
+      for (let i = 0; i < files.length; i++) {
+        const f = files[i];
+        say('Guardando ' + (i + 1) + ' de ' + files.length + ': ' + f.name + '…');
+        try {
+          await put({
+            id: Date.now().toString(36) + i + Math.random().toString(36).slice(2, 6),
+            title: f.name.replace(/\.[^.]+$/, ''),
+            name: f.name,
+            type: f.type,
+            blob: f,
+            createdAt: Date.now()
+          });
+        } catch (e) {
+          say('No se pudo guardar "' + f.name + '". Probá con un archivo más chico.');
+          return;
+        }
+      }
+
+      say('');
+      render();
+    }
+
+    $('pick').onclick = () => $('file').click();
+    $('file').onchange = (e) => {
+      add(e.target.files);
+      e.target.value = '';
+    };
+
+    const dz = $('drop');
+    ['dragover', 'dragenter'].forEach((n) => {
+      dz.addEventListener(n, (e) => {
+        e.preventDefault();
+        dz.classList.add('over');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach((n) => {
+      dz.addEventListener(n, (e) => {
+        e.preventDefault();
+        dz.classList.remove('over');
+      });
+    });
+
+    dz.addEventListener('drop', (e) => add(e.dataTransfer.files));
+
+    render().catch(() => say('Tu navegador no permite guardar archivos localmente. Probá con Chrome, Edge o Firefox.'));
+  </script>
+</body>
+</html>
