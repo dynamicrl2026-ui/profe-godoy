@@ -255,6 +255,25 @@
     const fmt = (b) => b > 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
     const ext = (n) => (n.split('.').pop() || '').toLowerCase();
 
+    const publishedFiles = [
+      { title: 'Ciclo de vida SDLC', path: 'precentaciones de canva/Ciclo de vida SDLC.pdf', category: 'Presentaciones' },
+      { title: 'Integración de tecnologías', path: 'precentaciones de canva/Integración de tecnologías.pdf', category: 'Presentaciones' },
+      { title: 'La metodología ágil', path: 'precentaciones de canva/La metodología ágil.pdf', category: 'Presentaciones' },
+      { title: 'Roles del analista', path: 'precentaciones de canva/Roles del analista.pdf', category: 'Presentaciones' },
+      { title: 'Sistemas y metodologías', path: 'precentaciones de canva/Sistemas y metodologías.pdf', category: 'Presentaciones' },
+      { title: 'TP 8 Casos de Uso', path: 'precentaciones de canva/TP 8 Casos de Uso.pdf', category: 'Presentaciones' },
+      { title: 'TP6 Análisis de Sistemas', path: 'precentaciones de canva/TP6 Análisis de Sistemas.pdf', category: 'Presentaciones' },
+      { title: 'Trabajo Práctico 7', path: 'precentaciones de canva/Trabajo Práctico 7.pdf', category: 'Presentaciones' },
+      { title: 'TP1: Sistemas, Roles y Metodologías de Desarrollo', path: 'tps/tp1_Sistemas, Roles y Metodologías de Desarrollo.pdf', category: 'Trabajos prácticos' },
+      { title: 'TP2: Integración de las tecnologías en sistemas', path: 'tps/Tp2_INTEGRACIÓN DE LAS TECNOLOGÍAS EN SISTEMAS.pdf', category: 'Trabajos prácticos' },
+      { title: 'TP3: Roles del analista de sistemas', path: 'tps/Tp3_ROLES DEL ANALISTA DE SISTEMAS.pdf', category: 'Trabajos prácticos' },
+      { title: 'TP4: El ciclo de vida del desarrollo de sistemas', path: 'tps/Tp4_EL CICLO DE VIDA DEL DESARROLLO DE SISTEMAS.pdf', category: 'Trabajos prácticos' },
+      { title: 'TP6: Análisis y diseño de sistemas orientado a objetos', path: 'tps/Tp6_ANÁLISIS Y DISEÑO DE SISTEMAS ORIENTADO A OBJETOS.pdf', category: 'Trabajos prácticos' },
+      { title: 'TP7: Descripción gráfica y casos de uso', path: 'tps/TP7_Descripcion_grafica_y_casos_de_uso.pdf', category: 'Trabajos prácticos' },
+      { title: 'TP8: Casos de uso, alcance, escenarios y niveles', path: 'tps/TP8_Casos_de_uso_alcance_escenarios_y_niveles.pdf', category: 'Trabajos prácticos' },
+      { title: 'TP5: Presentación - La metodología ágil', path: 'tps/Tp_5PRESENTACION -LA METODOLOGÍA ÁGIL.pdf', category: 'Trabajos prácticos' }
+    ];
+
     const kind = (it) => {
       const e = ext(it.name);
       if (it.type === 'application/pdf' || e === 'pdf') return 'pdf';
@@ -294,7 +313,19 @@
     let urls = [];
 
     async function render() {
-      const items = ((await all()) || []).sort((a, b) => b.createdAt - a.createdAt);
+      const localItems = (await all()) || [];
+      const items = [
+        ...publishedFiles.map((file) => ({
+          ...file,
+          id: file.path,
+          name: file.path.split('/').pop(),
+          type: 'application/pdf',
+          url: encodeURI('./' + file.path),
+          published: true,
+          createdAt: 0
+        })),
+        ...localItems
+      ].sort((a, b) => b.createdAt - a.createdAt);
       urls.forEach((u) => URL.revokeObjectURL(u));
       urls = [];
 
@@ -324,7 +355,7 @@
           th.textContent = (ext(it.name).toUpperCase().slice(0, 5) || 'ARCHIVO');
         }
 
-        th.onclick = () => view(it);
+        th.onclick = () => it.published ? window.open(it.url, '_blank', 'noopener') : view(it);
 
         const inf = document.createElement('div');
         inf.className = 'info';
@@ -335,38 +366,45 @@
 
         const m = document.createElement('div');
         m.className = 'm';
-        m.textContent = new Date(it.createdAt).toLocaleDateString('es-AR') + ' · ' + fmt(it.blob.size);
+        m.textContent = it.published
+          ? it.category + ' · PDF'
+          : new Date(it.createdAt).toLocaleDateString('es-AR') + ' · ' + fmt(it.blob.size);
 
         const a = document.createElement('div');
         a.className = 'acts';
 
         const v = document.createElement('button');
-        v.textContent = k === 'file' ? 'Descargar' : 'Ver';
-        v.onclick = () => (k === 'file' ? save(it) : view(it));
+        v.textContent = it.published ? 'Abrir PDF' : k === 'file' ? 'Descargar' : 'Ver';
+        v.onclick = () => it.published
+          ? window.open(it.url, '_blank', 'noopener')
+          : (k === 'file' ? save(it) : view(it));
 
-        const r = document.createElement('button');
-        r.className = 'ghost';
-        r.textContent = 'Renombrar';
-        r.onclick = async () => {
-          const n = prompt('Nuevo título', it.title);
-          if (n && n.trim()) {
-            it.title = n.trim();
-            await put(it);
-            render();
-          }
-        };
+        a.append(v);
+        if (!it.published) {
+          const r = document.createElement('button');
+          r.className = 'ghost';
+          r.textContent = 'Renombrar';
+          r.onclick = async () => {
+            const n = prompt('Nuevo título', it.title);
+            if (n && n.trim()) {
+              it.title = n.trim();
+              await put(it);
+              render();
+            }
+          };
 
-        const d = document.createElement('button');
-        d.className = 'ghost';
-        d.textContent = 'Borrar';
-        d.onclick = async () => {
-          if (confirm('¿Borrar "' + it.title + '"?')) {
-            await del(it.id);
-            render();
-          }
-        };
+          const d = document.createElement('button');
+          d.className = 'ghost';
+          d.textContent = 'Borrar';
+          d.onclick = async () => {
+            if (confirm('¿Borrar "' + it.title + '"?')) {
+              await del(it.id);
+              render();
+            }
+          };
 
-        a.append(v, r, d);
+          a.append(r, d);
+        }
         inf.append(t, m, a);
         c.append(th, inf);
         g.appendChild(c);
